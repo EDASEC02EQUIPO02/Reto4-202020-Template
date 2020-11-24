@@ -27,6 +27,7 @@
 
 import sys
 import config
+from App import model
 from App import controller
 from DISClib.ADT import stack
 from DISClib.ADT import list as lt
@@ -59,11 +60,12 @@ def printMenu():
     print("Bienvenido")
     print("1- Inicializar Analizador")
     print("2- Cargar información de buses de singapur")
-    print("3- Calcular componentes conectados")
-    print("4- Establecer estación base:")
-    print("5- Hay camino entre estacion base y estación: ")
-    print("6- Ruta de costo mínimo desde la estación base y estación: ")
-    print("7- Estación que sirve a mas rutas: ")
+    print("3- Requerimiento #1")
+    print("4- Requerimiento #2")
+    print("5- Requerimiento #3")
+    print("6- Requerimiento #4")
+    print("7- Requerimiento #5")
+    print("8- Requerimiento #6")
     print("0- Salir")
     print("*******************************************")
 
@@ -107,7 +109,54 @@ while True:
             print("Están fuertemente conectados")
         t2 = process_time()
         print("El tiempo de procesamiento es de: ", t2 - t1)
+    
+    elif int(inputs[0]) == 4:
+        t1 = process_time()
+        vertice = input("Deme la estación de origen: ")
+        tiempo1 = int(input("Ingrese el tiempo mínimo que tiene: "))
+        tiempo2 = int(input("Ingrese el tiempo mínimo que tiene: "))
+        resp = model.req_3(cont, vertice, tiempo1, tiempo2)
+
+        t2 = process_time()
+        print("El tiempo de procesamiento es de: ", t2 - t1)
+    elif int(inputs[0]) == 5:
+        t1 = process_time()
+        resp = controller.requerimiento_3(cont)
+        t2 = process_time()
+        print("El tiempo de procesamiento es de: ", t2 - t1)
+
+    elif int(inputs[0]) == 6:
+
+        t1 = process_time()
+        TiempoResistencia = input("Tiempo máximo de resistencia en minutos: ")
+        IdEstacionI = input("ID de la estación inicial: ")
+        rutas=controller.req4(cont, TiempoResistencia, IdEstacionI)
+        print(rutas)
+        t2 = process_time()
+        print("El tiempo de procesamiento es de: ", t2 - t1)
+
+    elif int(inputs[0]) == 7:
+        t1 = process_time()
+        print("Ingrese un rango de fechas: (EJ: 0-10,11-20,21-30")
+        rangoi = int(input("Ingrese el mínimo de edad: "))
+        rangof = int(input("Ingrese el máximo de edad: "))
+        controller.Repeticiones(cont, rangoi, rangof)
+        t2 = process_time()
+        print("El tiempo de procesamiento es de: ", t2 - t1)
+    elif int(inputs[0]) == 8:
+        t1 = process_time()
+        #latitudI = float(input("Ingrese la latitud en la que se encuentra: "))
+        #longitudI = float(input("Ingrese la longitud en la que se encuentra: "))
+        #latitudF = float(input("Ingrese la latitud del sitio de interes turistico: "))
+        #longitudF =float(input("Ingrese la longitud del sitio de interes turistico: "))
+        controller.requerimiento_6(cont, 40.76727216, -73.99392888, 40.71754834, -74.01322069)
+        t2 = process_time()
+        print("El tiempo de procesamiento es de: ", t2 - t1)
     else:
         sys.exit(0)
 sys.exit(0)
 
+#40.76727216
+#-73.99392888
+#40.71754834
+#-74.01322069

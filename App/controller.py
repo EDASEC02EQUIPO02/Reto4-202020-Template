@@ -71,7 +71,39 @@ def loadFile(citibike, tripfile):
                                 delimiter=",")
     for trip in input_file:
         model.addTrip(citibike, trip)
+        model.addStationI(citibike, trip)
+        model.addStationF(citibike, trip)
     return citibike
+
+# ___________________________________________________
+#  Funciones para los requerimientos:
+# ___________________________________________________
+def requerimiento_3(citibike):
+    return model.requerimiento_3(citibike)
+
+def req4(analyzer, TiempoResistencia, IdEstacionI):
+    tiempoSegundos=int(TiempoResistencia)*60
+    rutas = model.req4(analyzer, tiempoSegundos, IdEstacionI)
+    return rutas
+
+def Repeticiones(cont, rangoi, rangof):
+    return model.Repeticiones(cont, rangoi, rangof)
+
+def requerimiento_6(cont, latitudI, longitudI, latitudF, longitudF):
+    return model.requerimiento_6(cont, latitudI, longitudI, latitudF, longitudF)
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
