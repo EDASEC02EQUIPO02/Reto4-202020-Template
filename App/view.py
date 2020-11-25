@@ -59,13 +59,15 @@ def printMenu():
     print("*******************************************")
     print("Bienvenido")
     print("1- Inicializar Analizador")
-    print("2- Cargar información de buses de singapur")
+    print("2- Cargar información de bicicletas de NY")
     print("3- Requerimiento #1")
     print("4- Requerimiento #2")
     print("5- Requerimiento #3")
     print("6- Requerimiento #4")
     print("7- Requerimiento #5")
     print("8- Requerimiento #6")
+    print("9- Requerimiento #7")
+    print("10- Requerimiento #8")
     print("0- Salir")
     print("*******************************************")
 
@@ -137,7 +139,7 @@ while True:
 
     elif int(inputs[0]) == 7:
         t1 = process_time()
-        print("Ingrese un rango de fechas: (EJ: 0-10,11-20,21-30")
+        print("Ingrese un rango de fechas: (EJ: 0-10, 11-20, 21-30, ...)")
         rangoi = int(input("Ingrese el mínimo de edad: "))
         rangof = int(input("Ingrese el máximo de edad: "))
         controller.Repeticiones(cont, rangoi, rangof)
@@ -152,6 +154,16 @@ while True:
         controller.requerimiento_6(cont, 40.76727216, -73.99392888, 40.71754834, -74.01322069)
         t2 = process_time()
         print("El tiempo de procesamiento es de: ", t2 - t1)
+    elif int(inputs[0]) == 9:
+        RangoEdad = input("Ingrese un rango de edad (Ej: 0-10, 11-20, 21-30...): ")
+        parEstaciones = controller.requerimiento_7(cont, RangoEdad)
+        print(parEstaciones)
+    elif int(inputs[0]) == 10:
+        IDBicicleta = input("Ingrese el ID de la bicicleta: ")
+        Fecha = input("Ingrese la fecha (DD-MM-AAAA): ")
+        rutaBicicleta = controller.requerimiento_8(cont, IDBicicleta, Fecha)
+        print(rutaBicicleta)
+
     else:
         sys.exit(0)
 sys.exit(0)

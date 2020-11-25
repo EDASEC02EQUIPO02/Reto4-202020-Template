@@ -37,7 +37,7 @@ from DISClib.Algorithms.Graphs import bfs
 from DISClib.Algorithms.Graphs import dijsktra as djk
 from DISClib.Utils import error as error
 from DISClib.Algorithms.Sorting import shellsort as ls
-from math import radians, cos, sin, asin, sqrt
+from math import radians, cos, sin, asin, sqrt, atan2
 assert config
 
 """
@@ -144,7 +144,7 @@ def Repeticiones(citibike, rangoI, rangoF):
     edadI = mp.keySet(stationI)
     edadF = mp.keySet(stationF)
     infoI = recorridos(edadI, stationI, rangoI, rangoF)
-    infoF = recorridos(edadI, stationF, rangoI, rangoF)
+    infoF = recorridos(edadF, stationF, rangoI, rangoF)
     sI = maximoDicc(infoI)
     sF = maximoDicc(infoF)
     print(infoI)
@@ -402,7 +402,7 @@ def req4Parte2(citibike, TiempoResistencia, vertice, tiempoRuta, listaRuta, list
     verticesAdy = gr.adjacents(citibike["graph"], vertice)
     if verticesAdy["size"]==0 and int(tiempoRuta)<=int(TiempoResistencia) and vertice!=IdEstacionI:
         if (IdEstacionI+"-"+vertice +": " + str(tiempoRuta)) not in listaFinal:
-            listaFinal.append(IdEstacionI+"-"+vertice +": " + str(tiempoRuta))
+            listaFinal.append(IdEstacionI+"-"+vertice +": " + str(tiempoRuta) + "s ")
         y=lt.removeLast(listaRuta)
         longitud=len(listaArcos)
         if longitud != 0:
@@ -444,7 +444,7 @@ def requerimiento_6(citibike, latitudI, longitudI, latitudF, longitudF):
             fila = it.next(iterador)
             lista.append(fila)
     else:
-        print("no hay camino")
+        print("No hay camino entre las dos estaciones")
     tiempo = 0
     for i in range(1, len(lista)-1):
         arco = gr.getEdge(citibike['graph'], lista[i], lista[i+1])
@@ -479,8 +479,8 @@ def calcularDistancia(lat1, lat2, lon1, lon2):
     dlon = lon2 - lon1
     dlat = lat2 - lat1 
     a = sin(dlat / 2)**2 + cos(lat1) * cos(lat2) * sin(dlon / 2)**2
-
-    c = 2 * asin(sqrt(a))
+    
+    c = 2 * atan2(sqrt(a), sqrt(1 - a)) 
 
     # Radius of earth in kilometers. Use 3956 for miles 
     r = 6371
@@ -490,7 +490,7 @@ def calcularDistancia(lat1, lat2, lon1, lon2):
 
 def minimoDicc(dicc):
     if len(dicc) == 0:
-        return "no hay estación"
+        return "No existe la estación"
     print(dicc)
     m = (min(dicc.values()))
     for i in dicc:
@@ -504,7 +504,17 @@ def minimoDicc(dicc):
 
 
 
+#Requerimiento 7
 
+#def requerimiento_7(cont, RangoEdad):
+
+
+
+
+#Requerimiento 8
+
+#def requerimiento_8(citibike, IDBicicleta, Fecha):
+    
 
 
 
@@ -526,8 +536,12 @@ def IsItConnected(analyzer, verta, vertb):
     Calcula los componentes conectados del grafo
     Se utiliza el algoritmo de Kosaraju
     """
-    analyzer['components'] = scc.KosarajuSCC(analyzer['graph'])
-    return scc.stronglyConnected(analyzer['components'], verta, vertb)
+    if gr.containsVertex(analyzer["graph"], verta) and gr.containsVertex(analyzer["graph"], vertb):
+        analyzer['components'] = scc.KosarajuSCC(analyzer['graph'])
+        return scc.stronglyConnected(analyzer['components'], verta, vertb)
+    else: 
+        print("La estación no existe")
+        return False
 
 
 def minimumCostPaths(analyzer, initialStation):
