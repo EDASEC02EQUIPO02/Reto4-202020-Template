@@ -112,23 +112,28 @@ def addStationF(citibike, trip):
 
 def addNamesLocations(citibike, trip):
     dicc = {}
-    if m.contains(citibike["names"], trip['start station id']) == None:
+    if m.contains(citibike["names"], trip['start station id']) == False:
         name = trip['start station name']
         latitud = trip['start station latitude']
         longitud = trip['start station longitude']
         dicc['nombre'] = name
         dicc['latitud'] = latitud
         dicc['longitud'] = longitud
-        m.put(citibike["names"], trip['start station id'], dicc) 
+        m.put(citibike["names"], trip['start station id'], dicc)
+    else:
+        None
 
-    if m.contains(citibike["names"], trip['end station id']) == None:
+    if m.contains(citibike["names"], trip['end station id']) == False:
         name = trip['end station name']
         latitud = trip['end station latitude']
         longitud = trip['end station longitude']
         dicc['nombre'] = name
         dicc['latitud'] = latitud
         dicc['longitud'] = longitud
-        m.put(citibike["names"], trip['end station id'], dicc) 
+        m.put(citibike["names"], trip['end station id'], dicc)
+    else:
+        None
+    
 
 
 #Requerimiento 5 (grupal)
@@ -438,6 +443,8 @@ def requerimiento_6(citibike, latitudI, longitudI, latitudF, longitudF):
         while it.hasNext(iterador):
             fila = it.next(iterador)
             lista.append(fila)
+    else:
+        print("no hay camino")
     tiempo = 0
     for i in range(1, len(lista)-1):
         arco = gr.getEdge(citibike['graph'], lista[i], lista[i+1])
@@ -449,27 +456,24 @@ def requerimiento_6(citibike, latitudI, longitudI, latitudF, longitudF):
 
         
 def NearestStation(citibike, latitud, longitud):
-    dicc = {}
+    dicc2 = {}
     lista = m.keySet(citibike['names'])
-    print(lista)
     iterador = it.newIterator(lista)
     while it.hasNext(iterador):
         info = it.next(iterador)
-        print(info)
         info2 = m.get(citibike['names'], info)
         dicc = en.getValue(info2)
         latitudv = dicc['latitud']
         longitudv = dicc['longitud']
-        distancia = calcularDistancia(latitud, latitudv, longitud, longitudv)
-        print(distancia)
-        dicc[info] = distancia
-    return dicc
+        distancia = float(calcularDistancia(latitud, latitudv, longitud, longitudv))
+        dicc2[info] = distancia
+    return dicc2
 
 def calcularDistancia(lat1, lat2, lon1, lon2): 
-    lon1 = radians(lon1) 
-    lon2 = radians(lon2) 
-    lat1 = radians(lat1) 
-    lat2 = radians(lat2) 
+    lon1 = radians(float(lon1)) 
+    lon2 = radians(float(lon2))
+    lat1 = radians(float(lat1)) 
+    lat2 = radians(float(lat2))
 
     # Haversine formula
     dlon = lon2 - lon1
@@ -487,9 +491,10 @@ def calcularDistancia(lat1, lat2, lon1, lon2):
 def minimoDicc(dicc):
     if len(dicc) == 0:
         return "no hay estación"
+    print(dicc)
     m = (min(dicc.values()))
     for i in dicc:
-        if m == dicc[i]:
+        if m == float(dicc[i]):
             va = i
     return va
 

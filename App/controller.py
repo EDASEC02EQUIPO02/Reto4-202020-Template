@@ -73,6 +73,7 @@ def loadFile(citibike, tripfile):
         model.addTrip(citibike, trip)
         model.addStationI(citibike, trip)
         model.addStationF(citibike, trip)
+        model.addNamesLocations(citibike, trip)
     return citibike
 
 # ___________________________________________________
