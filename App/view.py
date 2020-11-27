@@ -98,6 +98,7 @@ while True:
         #print('El limite de recursion se ajusta a: ' + str(recursionLimit))
         t2 = process_time()
         print("El tiempo de procesamiento es de: ", t2 - t1)
+
     elif int(inputs[0]) == 3:
         t1 = process_time()
         scc = controller.connectedComponents(cont)
@@ -114,13 +115,15 @@ while True:
     
     elif int(inputs[0]) == 4:
         t1 = process_time()
-        vertice = input("Deme la estación de origen: ")
-        tiempo1 = int(input("Ingrese el tiempo mínimo que tiene: "))
-        tiempo2 = int(input("Ingrese el tiempo mínimo que tiene: "))
-        resp = model.req_3(cont, vertice, tiempo1, tiempo2)
-
+        tiempoinicial = input("Ingrese el rango minimo de tiempo en minutos: ")
+        tiempofinal = input("Ingrese el rango maximo de tiempo en minutos: ")
+        estacion = input("Ingrese el ID de la estacion inicial: ")
+        rutas= controller.req2(cont, tiempoinicial, tiempofinal, estacion)
+        print(rutas)
+        print(len(rutas))      
         t2 = process_time()
         print("El tiempo de procesamiento es de: ", t2 - t1)
+
     elif int(inputs[0]) == 5:
         t1 = process_time()
         resp = controller.requerimiento_3(cont)
@@ -128,12 +131,12 @@ while True:
         print("El tiempo de procesamiento es de: ", t2 - t1)
 
     elif int(inputs[0]) == 6:
-
         t1 = process_time()
         TiempoResistencia = input("Tiempo máximo de resistencia en minutos: ")
         IdEstacionI = input("ID de la estación inicial: ")
         rutas=controller.req4(cont, TiempoResistencia, IdEstacionI)
         print(rutas)
+        print(len(rutas))
         t2 = process_time()
         print("El tiempo de procesamiento es de: ", t2 - t1)
 
@@ -163,6 +166,7 @@ while True:
         Fecha = input("Ingrese la fecha (DD-MM-AAAA): ")
         rutaBicicleta = controller.requerimiento_8(cont, IDBicicleta, Fecha)
         print(rutaBicicleta)
+    
 
     else:
         sys.exit(0)

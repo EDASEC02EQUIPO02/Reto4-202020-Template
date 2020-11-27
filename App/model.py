@@ -80,7 +80,12 @@ def newAnalyzer():
                                                     maptype='CHAINING', 
                                                     loadfactor=1.0, 
                                                     comparefunction=comparer)
-        citibike['names'] = mp.newMap( numelements=300317,
+        citibike['namesI'] = mp.newMap( numelements=300317,
+                                                    prime=109345121,   
+                                                    maptype='CHAINING', 
+                                                    loadfactor=1.0, 
+                                                    comparefunction=comparer)
+        citibike['namesF'] = mp.newMap( numelements=300317,
                                                     prime=109345121,   
                                                     maptype='CHAINING', 
                                                     loadfactor=1.0, 
@@ -110,30 +115,321 @@ def addStationF(citibike, trip):
         lt.addLast(N, 2020-int(trip['birth year']))
         m.put(citibike["StationF"], trip['end station id'], N)    
 
-def addNamesLocations(citibike, trip):
+def addNamesLocationsI(citibike, trip):
     dicc = {}
-    if m.contains(citibike["names"], trip['start station id']) == False:
+    if m.contains(citibike["namesI"], trip['start station id']) == False:
         name = trip['start station name']
         latitud = trip['start station latitude']
         longitud = trip['start station longitude']
         dicc['nombre'] = name
         dicc['latitud'] = latitud
         dicc['longitud'] = longitud
-        m.put(citibike["names"], trip['start station id'], dicc)
+        m.put(citibike["namesI"], trip['start station id'], dicc)
     else:
         None
 
-    if m.contains(citibike["names"], trip['end station id']) == False:
+def addNamesLocationsF(citibike, trip):
+    dicc={}
+    if m.contains(citibike["namesF"], trip['end station id']) == False:
         name = trip['end station name']
         latitud = trip['end station latitude']
         longitud = trip['end station longitude']
         dicc['nombre'] = name
         dicc['latitud'] = latitud
         dicc['longitud'] = longitud
-        m.put(citibike["names"], trip['end station id'], dicc)
+        m.put(citibike["namesF"], trip['end station id'], dicc)
     else:
         None
     
+
+
+# Funciones para agregar informacion al grafo
+def addTrip(citibike, trip):
+    """
+    """
+    lt.addLast(citibike['lsttrips'], trip)
+    origin = trip['start station id']
+    destination = trip['end station id']
+    duration = int(trip['tripduration'])
+    age = 2020 - int(trip['birth year'])
+    addStation(citibike, origin)
+    addStation(citibike, destination)
+    addConnection(citibike, origin, destination, duration, age)
+    addConnection2(citibike, origin, destination, duration)
+
+
+def addStation(citibike, stationid):
+    """
+    Adiciona una estación como un vertice del grafo
+    """
+    if not gr.containsVertex(citibike ['graph'], stationid):
+            gr.insertVertex(citibike ['graph'], stationid)
+
+    if not gr.containsVertex(citibike ['grafo'], stationid):
+            gr.insertVertex(citibike ['grafo'], stationid)
+              
+    return citibike
+
+
+def addConnection2(citibike, origin, destination, duration):
+    edge = gr.getEdge(citibike['grafo'], origin, destination)
+    if origin != destination:
+        gr.addEdge(citibike['grafo'], origin, destination, duration)
+    return citibike
+
+
+#Requerimiento 1 (Grupal)
+
+def addConnection(citibike, origin, destination, duration, age):
+    """
+    Adiciona un arco entre dos estaciones
+    """
+    dicc = citibike['divide']
+    dicc2 = {}
+    edge = gr.getEdge(citibike['graph'], origin, destination)
+    if origin != destination:
+        if edge is None:
+            dicc2["duracion"] = duration
+            dicc2["contador"] = 1
+            dicc2["edades"] = []
+            dicc2["edades"].append(age)
+            gr.addEdge(citibike['graph'], origin, destination, dicc2)
+            dicc[str(origin)+"-"+str(destination)] = 1
+        else:
+            dicc[str(origin)+"-"+str(destination)] += 1
+            edge['weight']["contador"] += 1
+            valor = edge['weight']["duracion"]*(dicc[str(origin)+"-"+str(destination)]-1)
+            valor += duration
+            edge['weight']["duracion"] = (valor)/ dicc[str(origin)+"-"+str(destination)]
+            edge["weight"]["edades"].append(age)
+    return citibike
+
+
+
+#Requerimiento 2
+
+def req2(citibike, TiempoI, TiempoF, IdEstacionI):
+    tiempoRuta=0
+    if gr.containsVertex(citibike["graph"], IdEstacionI):
+        verticesAdy=gr.adjacents(citibike["graph"], IdEstacionI)
+    else:
+        return("La estación escogida no existe")
+    listaFinal=[]
+    if verticesAdy["size"]==0:
+        print("La estación escogida no tiene estaciones adyacentes")
+    else:
+        for i in range(0, (verticesAdy["size"]+1)):
+            listaRuta=[]
+            vertice=lt.getElement(verticesAdy, i)
+            valorArco=gr.getEdge(citibike["graph"], IdEstacionI, vertice)["weight"]["duracion"]
+            listaArcos=[]
+            tiempoRuta=int(valorArco)
+            listaRuta.append(IdEstacionI)
+            listaRuta.append(vertice)
+            listaArcos.append(valorArco)
+            req2Parte2(citibike, TiempoI, TiempoF, vertice, tiempoRuta, listaFinal, IdEstacionI, listaRuta, listaArcos)
+    return listaFinal
+
+
+def req2Parte2(citibike, TiempoI, TiempoF, vertice, tiempoRuta, listaFinal, IdEstacionI, listaRuta, listaArcos):
+    verticesAdy = gr.adjacents(citibike["graph"], vertice)
+    if (verticesAdy["size"]==0):
+        if  int(tiempoRuta)>= int(TiempoI) and int(tiempoRuta)<=int(TiempoF) and (str(listaRuta) + ": " + str(tiempoRuta) + "s " not in listaFinal and IdEstacionI==vertice):
+            print("o")
+            listaFinal.append(str(listaRuta) + ": " + str(tiempoRuta) + "s ")
+        longitud=len(listaArcos)
+        if longitud != 0:
+            x=listaArcos.pop(len(listaArcos)-1)
+            tiempoRuta-=int(x)
+            y=listaRuta.pop(len(listaRuta)-1)
+    elif (verticesAdy["size"]!=0):
+        for j in range(0, (verticesAdy["size"]+1)):
+            vertice2=lt.getElement(verticesAdy, j)
+            valorArco2=int(gr.getEdge(citibike["graph"], vertice, vertice2)["weight"]["duracion"])
+            if int(valorArco2) <= int(TiempoF):
+                tiempoRuta+=valorArco2
+                listaArcos.append(valorArco2)
+                listaRuta.append(vertice2)
+                req2Parte2(citibike, TiempoI, TiempoF, vertice2, tiempoRuta, listaFinal, IdEstacionI, listaRuta, listaArcos)
+    return listaFinal
+
+"""def req4Parte2(citibike, TiempoResistencia, vertice, tiempoRuta, listaRuta, listaFinal, IdEstacionI, listaArcos, nombreI):
+    verticesAdy = gr.adjacents(citibike["graph"], vertice)
+    if verticesAdy["size"]==0 and int(tiempoRuta)<=int(TiempoResistencia) and vertice!=IdEstacionI:
+        o=m.get(citibike["namesF"], vertice)
+        nombreO=en.getValue(o)
+        nombreP=nombreO["nombre"]
+        if (nombreI+" - "+nombreP +": " + str(tiempoRuta)+ "s ") not in listaFinal:
+            listaFinal.append(nombreI+" - "+nombreP+": " + str(tiempoRuta) + "s ")
+        y=lt.removeLast(listaRuta)
+        longitud=len(listaArcos)
+        if longitud != 0:
+            x=listaArcos.pop(len(listaArcos)-1)
+            tiempoRuta-=int(x)
+    elif (verticesAdy["size"]!=0):
+        for j in range(0, (verticesAdy["size"]+1)):
+            vertice2=lt.getElement(verticesAdy, j)
+            valorArco2=int(gr.getEdge(citibike["graph"], vertice, vertice2)["weight"]["duracion"])
+            tiempoRuta+=valorArco2
+            if listaRuta["size"]==0:
+                None
+            elif (vertice2 in listaRuta or int(tiempoRuta)>int(TiempoResistencia)):
+                None
+            elif int(tiempoRuta)<=int(TiempoResistencia):
+                r=m.get(citibike["namesF"], vertice2)
+                nombreE=en.getValue(r)
+                nombreT=nombreE["nombre"]
+                listaFinal.append(nombreI+"-"+nombreT+": "+ str(tiempoRuta))
+                lt.addLast(listaRuta, vertice2)
+                req4Parte2(citibike, TiempoResistencia, vertice2, tiempoRuta, listaRuta, listaFinal, IdEstacionI, listaArcos, nombreI)
+    return listaFinal
+"""
+#Requerimiento_3
+def requerimiento_3(citibike):
+    lista = gr.vertices(citibike['grafo'])
+    dicc1 = {}
+    dicc2 = {}
+    dicc3 = {}
+    iterador = it.newIterator(lista)
+    while it.hasNext(iterador):
+        fila = it.next(iterador)
+        out = gr.outdegree(citibike['grafo'], fila)
+        ins = gr.indegree(citibike['grafo'], fila)
+        dicc1[fila] = out
+        dicc2[fila] = ins
+        dicc3[fila] = out + ins
+    salida = mayores(dicc1)
+    llegada = mayores(dicc2)
+    ambos = menores(dicc3)
+    nombres_salida = encontrar(dicc1, salida)
+    nombres_llegada = encontrar(dicc2, llegada)
+    nombres_ambos = encontrar(dicc3, ambos)
+    print("Las 3 mejores estaciones de salida son: ")
+    nombresI(nombres_salida, citibike)
+    print("\nLas 3 mejores estaciones de llegada son: ")
+    nombresF(nombres_llegada, citibike)
+    print("\nLas 3 peores estaciones de llegada/salida son: ")
+    for i in range(0,3):
+        if mp.contains(citibike["namesI"], nombres_ambos[i]):
+            z=m.get(citibike["namesI"], nombres_ambos[i])
+            nombreX=en.getValue(z)
+            nombreI=nombreX["nombre"]
+            print(nombreI)
+        else:
+            z=m.get(citibike["namesF"], nombres_ambos[i])
+            nombreX=en.getValue(z)
+            nombreI=nombreX["nombre"]
+            print(nombreI)
+            
+def mayores(dicc):
+    lista = []
+    lista2 = []
+    for i in dicc:
+        lista.append(dicc[i])
+    new = sorted(lista, reverse=True)
+    for i in range(0, 3):
+        dato = new[i]
+        lista2.append(dato)
+    return lista2
+    
+def menores(dicc):
+    lista = []
+    lista2 = []
+    for i in dicc:
+        lista.append(dicc[i])
+    lista.sort()
+    for i in range(0, 3):
+        dato = lista[i]
+        lista2.append(dato)
+    return lista2
+
+def encontrar(dicc, lista):
+    lst = []
+    for i in range(0,3):
+        for j in dicc:
+            if dicc[j] == lista[i]:
+                lst.append(j)
+    return lst
+            
+def nombresI(lista, citibike):
+    for i in range(0,3):
+        z=m.get(citibike["namesI"], lista[i])
+        nombreX=en.getValue(z)
+        nombreI=nombreX["nombre"]
+        print(nombreI)
+
+def nombresF(lista, citibike):
+    for i in range(0,3):
+        z=m.get(citibike["namesF"], lista[i])
+        nombreX=en.getValue(z)
+        nombreI=nombreX["nombre"]
+        print(nombreI)
+            
+
+
+
+#Requerimiento 4
+
+def req4(citibike, TiempoResistencia, IdEstacionI):
+    tiempoRuta=0
+    if gr.containsVertex(citibike["graph"], IdEstacionI):
+        verticesAdy=gr.adjacents(citibike["graph"], IdEstacionI)
+        z=m.get(citibike["namesI"], IdEstacionI)
+        nombreX=en.getValue(z)
+        nombreI=nombreX["nombre"]
+    else:
+        return("La estación escogida no existe")
+    listaFinal=[]
+    if verticesAdy["size"]==0:
+        print("La estación escogida no tiene estaciones adyacentes")
+    else:
+        for i in range(0, (verticesAdy["size"]+1)):
+            tiempoRuta=0
+            listaRuta=lt.newList("SINGLED_LINKED")
+            listaArcos=[]
+            vertice=lt.getElement(verticesAdy, i)
+            lt.addLast(listaRuta, vertice)
+            valorArco=gr.getEdge(citibike["graph"], IdEstacionI, vertice)["weight"]["duracion"]
+            listaArcos.append(valorArco)
+            tiempoRuta=int(valorArco)
+            req4Parte2(citibike, TiempoResistencia, vertice, tiempoRuta, listaRuta, listaFinal, IdEstacionI, listaArcos, nombreI)                                        
+    return listaFinal
+
+def req4Parte2(citibike, TiempoResistencia, vertice, tiempoRuta, listaRuta, listaFinal, IdEstacionI, listaArcos, nombreI):
+    verticesAdy = gr.adjacents(citibike["graph"], vertice)
+    if verticesAdy["size"]==0:
+        if int(tiempoRuta)<=int(TiempoResistencia) and vertice!=IdEstacionI:
+            o=m.get(citibike["namesF"], vertice)
+            nombreO=en.getValue(o)
+            nombreP=nombreO["nombre"]
+            if (nombreI+" - "+nombreP +": " + str(tiempoRuta)+ "s ") not in listaFinal:
+                listaFinal.append(nombreI+" - "+nombreP+": " + str(tiempoRuta) + "s ")
+        y=lt.removeLast(listaRuta)
+        longitud=len(listaArcos)
+        if longitud != 0:
+            x=listaArcos.pop(len(listaArcos)-1)
+            tiempoRuta-=int(x)
+    elif (verticesAdy["size"]!=0):
+        for j in range(0, (verticesAdy["size"]+1)):
+            vertice2=lt.getElement(verticesAdy, j)
+            valorArco2=int(gr.getEdge(citibike["graph"], vertice, vertice2)["weight"]["duracion"])
+            tiempoRuta+=valorArco2
+            listaArcos.append(valorArco2)
+            if listaRuta["size"]==0:
+                None
+            elif (vertice2 in listaRuta or int(tiempoRuta)>int(TiempoResistencia)):
+                None
+            elif int(tiempoRuta)<=int(TiempoResistencia):
+                r=m.get(citibike["namesF"], vertice2)
+                nombreE=en.getValue(r)
+                nombreT=nombreE["nombre"]
+                if (nombreI+" - "+nombreT +": " + str(tiempoRuta)+ "s ") not in listaFinal:
+                    listaFinal.append(nombreI+" - "+nombreT+": "+ str(tiempoRuta) + "s ")
+                lt.addLast(listaRuta, vertice2)
+                req4Parte2(citibike, TiempoResistencia, vertice2, tiempoRuta, listaRuta, listaFinal, IdEstacionI, listaArcos, nombreI)
+    return listaFinal
+
+
 
 
 #Requerimiento 5 (grupal)
@@ -147,8 +443,6 @@ def Repeticiones(citibike, rangoI, rangoF):
     infoF = recorridos(edadF, stationF, rangoI, rangoF)
     sI = maximoDicc(infoI)
     sF = maximoDicc(infoF)
-    print(infoI)
-    print(infoF)
     print("La estación en la que más personas salen ese rango de edad es: " + str(sI))
     print("La estación en la que más personas llegan ese rango de edad es: " + str(sF))
     camino = bfs.BreadhtFisrtSearch(citibike['graph'], sI)
@@ -193,238 +487,6 @@ def maximoDicc(dicc):
 
 
 
-
-
-# Funciones para agregar informacion al grafo
-def addTrip(citibike, trip):
-    """
-    """
-    lt.addLast(citibike['lsttrips'], trip)
-    origin = trip['start station id']
-    destination = trip['end station id']
-    duration = int(trip['tripduration'])
-    age = 2020 - int(trip['birth year'])
-    addStation(citibike, origin)
-    addStation(citibike, destination)
-    addConnection(citibike, origin, destination, duration, age)
-    addConnection2(citibike, origin, destination, duration)
-
-
-def addStation(citibike, stationid):
-    """
-    Adiciona una estación como un vertice del grafo
-    """
-    if not gr.containsVertex(citibike ['graph'], stationid):
-            gr.insertVertex(citibike ['graph'], stationid)
-
-    if not gr.containsVertex(citibike ['grafo'], stationid):
-            gr.insertVertex(citibike ['grafo'], stationid)
-              
-    return citibike
-
-
-def addConnection2(citibike, origin, destination, duration):
-    edge = gr.getEdge(citibike['grafo'], origin, destination)
-    if origin != destination:
-        gr.addEdge(citibike['grafo'], origin, destination, duration)
-    return citibike
-
-
-
-def addConnection(citibike, origin, destination, duration, age):
-    """
-    Adiciona un arco entre dos estaciones
-    """
-    dicc = citibike['divide']
-    dicc2 = {}
-    edge = gr.getEdge(citibike['graph'], origin, destination)
-    if origin != destination:
-        if edge is None:
-            dicc2["duracion"] = duration
-            dicc2["contador"] = 1
-            dicc2["edades"] = []
-            dicc2["edades"].append(age)
-            gr.addEdge(citibike['graph'], origin, destination, dicc2)
-            dicc[str(origin)+"-"+str(destination)] = 1
-        else:
-            dicc[str(origin)+"-"+str(destination)] += 1
-            edge['weight']["contador"] += 1
-            valor = edge['weight']["duracion"]*(dicc[str(origin)+"-"+str(destination)]-1)
-            valor += duration
-            edge['weight']["duracion"] = (valor)/ dicc[str(origin)+"-"+str(destination)]
-            edge["weight"]["edades"].append(age)
-    return citibike
-"""
-def req_3(citibike, origin, tiempo1, tiempo2):
-    citibike['components'] = scc.KosarajuSCC(citibike['graph'])
-    #valor = scc.sccCount(citibike['graph'], citibike['components'], origin)
-    value = m.get(citibike['components']['idscc'], origin)['value'] #numero de componente
-    ayuda = origin
-    algo = "hola"
-    nombre = origin
-    while origin != algo:
-        algo = origin
-        lista = gr.adjacents(citibike['graph'], origin)
-        valor = Funcion_adyacente(lista, value, citibike, algo)
-        lista_de_nombres = Funcion_recorrido(valor, algo, value)
-        while j < len(lista_de_nombres):
-        
-
-def Funcion_recorrido(dicc, name, value):
-    lista = []
-    dicc = {}
-    if len(valor) == 1:
-        for i in valor:
-            nombre = i
-            return lista.append(nombre)
-    if len(valor) > 1:
-        for i in valor:
-            nombre = i
-            lista = gr.adjacents(citibike['graph'], i)
-            valor = Funcion_adyacente(lista, value, citibike, i)
-            nombre2 = Funcion_recorrido(valor, i, value)
-            dicc[i] = nombre2
-            lista.append(dicc)
-        
-def Funcion_adyacente(lista, value, graph, origin):
-    lst = []
-    lista = it.newIterator(lista)
-    while it.hasNext(lista):
-        fila = it.next(lista)
-        kosa = m.get(graph['components']['idscc'], fila)['value']
-        if kosa  == value:
-            lst.append(fila)
-    if len(lst) > 1:
-        dicc = {}
-        j = 0
-        while j < len(lst):
-            final = lst[j]
-            arco = gr.getEdge(graph['graph'], origin, final)
-            time = arco['weight']["duracion"]
-            dicc[final] = time
-            j += 1
-        return dicc
-    else:
-        final = lst[0]
-        arco = gr.getEdge(graph['graph'], origin, final)
-        print(arco)
-        time = arco['weight']["duracion"]
-        menor = time
-        return {final: menor}
-"""
-#Requerimiento_3
-def requerimiento_3(citibike):
-    lista = gr.vertices(citibike['grafo'])
-    dicc1 = {}
-    dicc2 = {}
-    dicc3 = {}
-    iterador = it.newIterator(lista)
-    while it.hasNext(iterador):
-        fila = it.next(iterador)
-        out = gr.outdegree(citibike['grafo'], fila)
-        ins = gr.indegree(citibike['grafo'], fila)
-        dicc1[fila] = out
-        dicc2[fila] = ins
-        dicc3[fila] = out + ins
-    salida = mayores(dicc1)
-    llegada = mayores(dicc2)
-    ambos = menores(dicc3)
-    nombres_salida = encontrar(dicc1, salida)
-    nombres_llegada = encontrar(dicc2, llegada)
-    nombres_ambos = encontrar(dicc3, ambos)
-    print("Las 3 mejores estaciones de salida son: ")
-    nombres(nombres_salida)
-    print("\nLas 3 mejores estaciones de llegada son: ")
-    nombres(nombres_llegada)
-    print("\nLas 3 peores estaciones de llegada/salida son: ")
-    nombres(nombres_ambos)
-
-
-def mayores(dicc):
-    lista = []
-    lista2 = []
-    for i in dicc:
-        lista.append(dicc[i])
-    new = sorted(lista, reverse=True)
-    for i in range(0, 3):
-        dato = new[i]
-        lista2.append(dato)
-    return lista2
-    
-def menores(dicc):
-    lista = []
-    lista2 = []
-    for i in dicc:
-        lista.append(dicc[i])
-    lista.sort()
-    for i in range(0, 3):
-        dato = lista[i]
-        lista2.append(dato)
-    return lista2
-
-def encontrar(dicc, lista):
-    lst = []
-    for i in range(0,3):
-        for j in dicc:
-            if dicc[j] == lista[i]:
-                lst.append(j)
-    return lst
-            
-def nombres(lista):
-    for i in range(0,3):
-        print(lista[i])
-            
-#Requerimiento 4
-
-def req4(citibike, TiempoResistencia, IdEstacionI):
-    tiempoRuta=0
-    if gr.containsVertex(citibike["graph"], IdEstacionI):
-        verticesAdy=gr.adjacents(citibike["graph"], IdEstacionI)
-    else:
-        return("La estación escogida no existe")
-    listaFinal=[]
-    if verticesAdy["size"]==0:
-        print("La estación escogida no tiene estaciones adyacentes")
-    else:
-        for i in range(1, (verticesAdy["size"]+1)):
-            listaRuta=lt.newList("SINGLED_LINKED")
-            listaArcos=[]
-            vertice=lt.getElement(verticesAdy, i)
-            lt.addLast(listaRuta, vertice)
-            valorArco=gr.getEdge(citibike["graph"], IdEstacionI, vertice)["weight"]["duracion"]
-            listaArcos.append(valorArco)
-            tiempoRuta=int(valorArco)
-            req4Parte2(citibike, TiempoResistencia, vertice, tiempoRuta, listaRuta, listaFinal, IdEstacionI, listaArcos)                                        
-    return listaFinal
-
-
-def req4Parte2(citibike, TiempoResistencia, vertice, tiempoRuta, listaRuta, listaFinal, IdEstacionI, listaArcos):
-    verticesAdy = gr.adjacents(citibike["graph"], vertice)
-    if verticesAdy["size"]==0 and int(tiempoRuta)<=int(TiempoResistencia) and vertice!=IdEstacionI:
-        if (IdEstacionI+"-"+vertice +": " + str(tiempoRuta)) not in listaFinal:
-            listaFinal.append(IdEstacionI+"-"+vertice +": " + str(tiempoRuta) + "s ")
-        y=lt.removeLast(listaRuta)
-        longitud=len(listaArcos)
-        if longitud != 0:
-            x=listaArcos.pop(len(listaArcos)-1)
-            tiempoRuta-=int(x)
-    elif (verticesAdy["size"]!=0):
-        for j in range(1, (verticesAdy["size"]+1)):
-            vertice2=lt.getElement(verticesAdy, j)
-            valorArco2=int(gr.getEdge(citibike["graph"], vertice, vertice2)["weight"]["duracion"])
-            tiempoRuta+=valorArco2
-            if listaRuta["size"]==0:
-                None
-            elif (vertice2 in listaRuta or int(tiempoRuta)>int(TiempoResistencia)):
-                None
-            elif int(tiempoRuta)<=int(TiempoResistencia):
-                listaFinal.append(IdEstacionI+"-"+vertice2+": "+ str(tiempoRuta))
-                lt.addLast(listaRuta, vertice2)
-                req4Parte2(citibike, TiempoResistencia, vertice2, tiempoRuta, listaRuta, listaFinal, IdEstacionI, listaArcos)
-    return listaFinal
-
-
-
 #Requerimiento 6 (grupal)
 
 def requerimiento_6(citibike, latitudI, longitudI, latitudF, longitudF):
@@ -433,8 +495,6 @@ def requerimiento_6(citibike, latitudI, longitudI, latitudF, longitudF):
     DistanciaF = NearestStation(citibike, latitudF, longitudF)
     stationI = minimoDicc(DistanciaI)
     stationF = minimoDicc(DistanciaF)
-    print(stationI)
-    print(stationF)
     camino = bfs.BreadhtFisrtSearch(citibike['graph'], stationI)
     caminofinal = bfs.hasPathTo(camino, stationF)
     if caminofinal == True:
@@ -446,22 +506,31 @@ def requerimiento_6(citibike, latitudI, longitudI, latitudF, longitudF):
     else:
         print("No hay camino entre las dos estaciones")
     tiempo = 0
-    for i in range(1, len(lista)-1):
-        arco = gr.getEdge(citibike['graph'], lista[i], lista[i+1])
-        tiempo += arco['weight']['duracion']
+    for i in range(0, len(lista)-1):
+        arco = gr.getEdge(citibike['graph'], lista[i], lista[i+1])["weight"]["duracion"]
+        tiempo += arco
     print("La estación incial más cercana es: " + stationI)
     print("La estación final más cercana es: " + stationF)
     print("La duración del viaje es de: " + str(tiempo))
     print("La ruta es: " + str(lista))
-
-        
+ 
 def NearestStation(citibike, latitud, longitud):
     dicc2 = {}
-    lista = m.keySet(citibike['names'])
-    iterador = it.newIterator(lista)
-    while it.hasNext(iterador):
-        info = it.next(iterador)
-        info2 = m.get(citibike['names'], info)
+    listaI = m.keySet(citibike['namesI'])
+    iteradorI = it.newIterator(listaI)
+    listaF = m.keySet(citibike['namesF'])
+    iteradorF = it.newIterator(listaF)
+    while it.hasNext(iteradorI):
+        info = it.next(iteradorI)
+        info2 = m.get(citibike['namesI'], info)
+        dicc = en.getValue(info2)
+        latitudv = dicc['latitud']
+        longitudv = dicc['longitud']
+        distancia = float(calcularDistancia(latitud, latitudv, longitud, longitudv))
+        dicc2[info] = distancia
+    while it.hasNext(iteradorF):
+        info = it.next(iteradorF)
+        info2 = m.get(citibike['namesF'], info)
         dicc = en.getValue(info2)
         latitudv = dicc['latitud']
         longitudv = dicc['longitud']
@@ -491,15 +560,11 @@ def calcularDistancia(lat1, lat2, lon1, lon2):
 def minimoDicc(dicc):
     if len(dicc) == 0:
         return "No existe la estación"
-    print(dicc)
     m = (min(dicc.values()))
     for i in dicc:
         if m == float(dicc[i]):
             va = i
     return va
-
-
-
 
 
 
@@ -515,6 +580,8 @@ def minimoDicc(dicc):
 
 #def requerimiento_8(citibike, IDBicicleta, Fecha):
     
+
+
 
 
 

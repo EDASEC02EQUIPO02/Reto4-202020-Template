@@ -73,12 +73,20 @@ def loadFile(citibike, tripfile):
         model.addTrip(citibike, trip)
         model.addStationI(citibike, trip)
         model.addStationF(citibike, trip)
-        model.addNamesLocations(citibike, trip)
+        model.addNamesLocationsI(citibike, trip)
+        model.addNamesLocationsF(citibike, trip)
     return citibike
 
 # ___________________________________________________
 #  Funciones para los requerimientos:
 # ___________________________________________________
+
+def req2(analyzer, TiempoI, TiempoF, IdEstacionI):
+    tiempoSegundosI=int(TiempoI)*60
+    tiempoSegundosF=int(TiempoF)*60
+    rutas = model.req2(analyzer, tiempoSegundosI, tiempoSegundosF, IdEstacionI)
+    return rutas
+
 def requerimiento_3(citibike):
     return model.requerimiento_3(citibike)
 
