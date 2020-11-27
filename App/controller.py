@@ -75,6 +75,7 @@ def loadFile(citibike, tripfile):
         model.addStationF(citibike, trip)
         model.addNamesLocationsI(citibike, trip)
         model.addNamesLocationsF(citibike, trip)
+        model.addSuscripcion(citibike, trip)
     return citibike
 
 # ___________________________________________________
@@ -101,11 +102,11 @@ def Repeticiones(cont, rangoi, rangof):
 def requerimiento_6(cont, latitudI, longitudI, latitudF, longitudF):
     return model.requerimiento_6(cont, latitudI, longitudI, latitudF, longitudF)
 
-"""
-def requerimiento_7(cont, RangoEdad)
-    parEstaciones = model.requerimiento_7(cont, RangoEdad)
+def requerimiento_7(cont, rangoi, rangof):
+    parEstaciones = model.requerimiento_7(cont, rangoi, rangof)
     return parEstaciones
 
+"""
 def requerimiento_8(cont, IDBicicleta, Fecha):
     rutaBicicleta = model.requerimiento_8(cont, IDBicicleta, Fecha)
     return rutaBicicleta

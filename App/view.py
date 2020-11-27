@@ -84,6 +84,7 @@ while True:
         print("\nInicializando....")
         # cont es el controlador que se usará de acá en adelante
         cont = controller.init()
+
     elif int(inputs[0]) == 2:
         t1 = process_time()
         print("\nCargando información de CitiBike ....")
@@ -119,8 +120,7 @@ while True:
         tiempofinal = input("Ingrese el rango maximo de tiempo en minutos: ")
         estacion = input("Ingrese el ID de la estacion inicial: ")
         rutas= controller.req2(cont, tiempoinicial, tiempofinal, estacion)
-        print(rutas)
-        print(len(rutas))      
+        print(rutas)     
         t2 = process_time()
         print("El tiempo de procesamiento es de: ", t2 - t1)
 
@@ -142,12 +142,13 @@ while True:
 
     elif int(inputs[0]) == 7:
         t1 = process_time()
-        print("Ingrese un rango de fechas: (EJ: 0-10, 11-20, 21-30, ...)")
+        print("Ingrese un rango de edad: (EJ: 0-10, 11-20, 21-30, ...)")
         rangoi = int(input("Ingrese el mínimo de edad: "))
         rangof = int(input("Ingrese el máximo de edad: "))
         controller.Repeticiones(cont, rangoi, rangof)
         t2 = process_time()
         print("El tiempo de procesamiento es de: ", t2 - t1)
+
     elif int(inputs[0]) == 8:
         t1 = process_time()
         #latitudI = float(input("Ingrese la latitud en la que se encuentra: "))
@@ -157,10 +158,14 @@ while True:
         controller.requerimiento_6(cont, 40.76727216, -73.99392888, 40.71754834, -74.01322069)
         t2 = process_time()
         print("El tiempo de procesamiento es de: ", t2 - t1)
+
     elif int(inputs[0]) == 9:
-        RangoEdad = input("Ingrese un rango de edad (Ej: 0-10, 11-20, 21-30...): ")
-        parEstaciones = controller.requerimiento_7(cont, RangoEdad)
+        print("Ingrese un rango de edad: (EJ: 0-10, 11-20, 21-30, ...)")
+        rangoi = int(input("Ingrese el mínimo de edad: "))
+        rangof = int(input("Ingrese el máximo de edad: "))
+        parEstaciones = controller.requerimiento_7(cont, rangoi, rangof)
         print(parEstaciones)
+
     elif int(inputs[0]) == 10:
         IDBicicleta = input("Ingrese el ID de la bicicleta: ")
         Fecha = input("Ingrese la fecha (DD-MM-AAAA): ")

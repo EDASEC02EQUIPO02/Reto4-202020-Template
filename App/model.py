@@ -90,6 +90,11 @@ def newAnalyzer():
                                                     maptype='CHAINING', 
                                                     loadfactor=1.0, 
                                                     comparefunction=comparer)
+        citibike['suscripcion'] = mp.newMap( numelements=300317,
+                                                    prime=109345121,   
+                                                    maptype='CHAINING', 
+                                                    loadfactor=1.0, 
+                                                    comparefunction=comparer)
         return citibike
     except Exception as exp:
         error.reraise(exp, 'model:newAnalyzer')
@@ -140,8 +145,22 @@ def addNamesLocationsF(citibike, trip):
         m.put(citibike["namesF"], trip['end station id'], dicc)
     else:
         None
-    
 
+def addSuscripcion(citibike, trip):
+    listaX=[]
+    edad = 2020-int(trip['birth year'])
+    estacionI = trip['start station id']
+    estacionF = trip['end station id']
+    listaX.append(edad)
+    listaX.append(estacionI)
+    listaX.append(estacionF)
+    if m.contains(citibike["suscripcion"], trip['usertype']) == True:
+        n = m.get(citibike["suscripcion"], trip['usertype'])
+        en.getValue(n).append(listaX)
+    else:
+        N = []
+        N.append(listaX)
+        m.put(citibike["suscripcion"], trip['usertype'], N) 
 
 # Funciones para agregar informacion al grafo
 def addTrip(citibike, trip):
@@ -234,7 +253,7 @@ def req2(citibike, TiempoI, TiempoF, IdEstacionI):
 def req2Parte2(citibike, TiempoI, TiempoF, vertice, tiempoRuta, listaFinal, IdEstacionI, listaRuta, listaArcos):
     verticesAdy = gr.adjacents(citibike["graph"], vertice)
     if (verticesAdy["size"]==0):
-        if  int(tiempoRuta)>= int(TiempoI) and int(tiempoRuta)<=int(TiempoF) and (str(listaRuta) + ": " + str(tiempoRuta) + "s " not in listaFinal and IdEstacionI==vertice):
+        if  int(tiempoRuta)>= int(TiempoI) and int(tiempoRuta)<=int(TiempoF) and (str(listaRuta) + ": " + str(tiempoRuta) + "s " not in listaFinal):
             print("o")
             listaFinal.append(str(listaRuta) + ": " + str(tiempoRuta) + "s ")
         longitud=len(listaArcos)
@@ -253,37 +272,7 @@ def req2Parte2(citibike, TiempoI, TiempoF, vertice, tiempoRuta, listaFinal, IdEs
                 req2Parte2(citibike, TiempoI, TiempoF, vertice2, tiempoRuta, listaFinal, IdEstacionI, listaRuta, listaArcos)
     return listaFinal
 
-"""def req4Parte2(citibike, TiempoResistencia, vertice, tiempoRuta, listaRuta, listaFinal, IdEstacionI, listaArcos, nombreI):
-    verticesAdy = gr.adjacents(citibike["graph"], vertice)
-    if verticesAdy["size"]==0 and int(tiempoRuta)<=int(TiempoResistencia) and vertice!=IdEstacionI:
-        o=m.get(citibike["namesF"], vertice)
-        nombreO=en.getValue(o)
-        nombreP=nombreO["nombre"]
-        if (nombreI+" - "+nombreP +": " + str(tiempoRuta)+ "s ") not in listaFinal:
-            listaFinal.append(nombreI+" - "+nombreP+": " + str(tiempoRuta) + "s ")
-        y=lt.removeLast(listaRuta)
-        longitud=len(listaArcos)
-        if longitud != 0:
-            x=listaArcos.pop(len(listaArcos)-1)
-            tiempoRuta-=int(x)
-    elif (verticesAdy["size"]!=0):
-        for j in range(0, (verticesAdy["size"]+1)):
-            vertice2=lt.getElement(verticesAdy, j)
-            valorArco2=int(gr.getEdge(citibike["graph"], vertice, vertice2)["weight"]["duracion"])
-            tiempoRuta+=valorArco2
-            if listaRuta["size"]==0:
-                None
-            elif (vertice2 in listaRuta or int(tiempoRuta)>int(TiempoResistencia)):
-                None
-            elif int(tiempoRuta)<=int(TiempoResistencia):
-                r=m.get(citibike["namesF"], vertice2)
-                nombreE=en.getValue(r)
-                nombreT=nombreE["nombre"]
-                listaFinal.append(nombreI+"-"+nombreT+": "+ str(tiempoRuta))
-                lt.addLast(listaRuta, vertice2)
-                req4Parte2(citibike, TiempoResistencia, vertice2, tiempoRuta, listaRuta, listaFinal, IdEstacionI, listaArcos, nombreI)
-    return listaFinal
-"""
+
 #Requerimiento_3
 def requerimiento_3(citibike):
     lista = gr.vertices(citibike['grafo'])
@@ -443,8 +432,8 @@ def Repeticiones(citibike, rangoI, rangoF):
     infoF = recorridos(edadF, stationF, rangoI, rangoF)
     sI = maximoDicc(infoI)
     sF = maximoDicc(infoF)
-    print("La estación en la que más personas salen ese rango de edad es: " + str(sI))
-    print("La estación en la que más personas llegan ese rango de edad es: " + str(sF))
+    print("La estación de la que más personas salen, con ese rango de edad es: " + str(sI))
+    print("La estación de la que más personas llegan, con ese rango de edad es: " + str(sF))
     camino = bfs.BreadhtFisrtSearch(citibike['graph'], sI)
     caminofinal = bfs.hasPathTo(camino, sF)
     print("Su camino es el siguiente: ")
@@ -571,8 +560,33 @@ def minimoDicc(dicc):
 
 #Requerimiento 7
 
-#def requerimiento_7(cont, RangoEdad):
-
+def requerimiento_7(citibike, rangoI, rangoF):
+    dicc = {}
+    lista = m.keySet(citibike['suscripcion'])
+    iterador = it.newIterator(lista)
+    while it.hasNext(iterador):
+        info = it.next(iterador)
+        if info == "Customer":
+            info2 = m.get(citibike['suscripcion'], info)
+            listaX = en.getValue(info2)
+            for i in range(0, len(listaX)-1):
+                if int(listaX[i][0])<=int(rangoF) and int(listaX[i][0])>=int(rangoI):
+                    if listaX[i][1] +"-"+ listaX[i][2] not in dicc:
+                        dicc[listaX[i][1] +"-"+ listaX[i][2]]=1
+                    else:
+                        dicc[listaX[i][1] +"-"+ listaX[i][2]]+=1
+    x = (max(dicc.values()))
+    for i in dicc:
+        if x == float(dicc[i]):
+            va = i
+    print("Las estaciones adyacentes más utilizadas son: " + str(va))
+    print("Con un total de viajes de: " + str(x))
+    print("")
+    print("Las estaciones que cumplen las condiciones son las siguientes: ")
+    for i in dicc:
+        llave=i
+        valor=dicc[i]
+        print(str(i) +": "+ str(dicc[i]))
 
 
 
